@@ -119,53 +119,44 @@ except OSError:
     # Write to file
     with open('assets/weather_data.json', 'w') as json_file:
         json.dump(weather_data, json_file)
-    
-
 #%%
 # Load json into DataFrame for analysis
 weather_df = json_normalize(weather_data)
+#%% [markdown]
+# # Results
+# Show graphs and stats here
 #%%
-weather_df = weather_df.sort_values(by='coord.lat')
-weather_df.info()
+plt.style.use('ggplot')
+#%%
 #%%
 # Plot the figures
 fig, ax_array = plt.subplots(nrows=2, ncols=2, figsize=(10,8))
 ax1 = ax_array[0][0]
+ax2 = ax_array[0][1]
+ax3 = ax_array[1][0]
+ax4 = ax_array[1][1]
+
+weather_df.plot(x='coord.lat', y='main.temp', kind='scatter', ax=ax1, title='Temperature')
 ax1.set_xlabel('Latitude')
 ax1.set_ylabel('Temperature (F)')
 
-ax2 = ax_array[0][1]
+weather_df.plot(x='coord.lat', y='main.humidity', kind='scatter', ax=ax2, title='Humidity')
 ax2.set_xlabel('Latitude')
 ax2.set_ylabel('% Humidity')
 
-ax3 = ax_array[1][0]
+weather_df.plot(x='coord.lat', y='clouds.all', kind='scatter', ax=ax3, title='Cloudiness', )
 ax3.set_xlabel('Latidude')
 ax3.set_ylabel('% Cloudiness')
 
-ax4 = ax_array[1][1]
+weather_df.plot(x='coord.lat', y='wind.speed', kind='scatter', ax=ax4, title='Wind Speed')
 ax4.set_xlabel('Latitude')
 ax4.set_ylabel('Wind Speed (mph)')
-
-weather_df.plot(x='coord.lat', y='main.temp', kind='scatter', ax=ax1, title='Temperature')
-weather_df.plot(x='coord.lat', y='main.humidity', kind='scatter', ax=ax2, title='Humidity')
-weather_df.plot(x='coord.lat', y='clouds.all', kind='scatter', ax=ax3, title='Cloudiness', )
-weather_df.plot(x='coord.lat', y='wind.speed', kind='scatter', ax=ax4, title='Wind Speed')
 fig.tight_layout()
-#%% [markdown]
-# # Results
-# Show graphs and stats here
 #%% [markdown]
 # # Conclusions and Next Steps
 # Summarize findings here
+# 1. From the nice bell-shaped curver in the temperature plot, we can see that the temperature does indeed increase as we approach the equator
+# 2. We can also note that there is clearly no correlation between Humidity, Cloudiness, or Windspeed compared with respect to Latitude.
+# 3. 
 
 #%%
-
-
-#%%
-
-
-
-#%%
-
-
-
