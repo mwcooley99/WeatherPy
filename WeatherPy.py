@@ -98,17 +98,19 @@ if not 'city' in city_df.columns:
 city_df.head()
 
 #%%
-# Check for Nan cities
+# Check for Nan cities and remove duplicates
 num_of_na = len(city_df[city_df['city'].isna()])
+city_df = city_df.drop_duplicates(subset='city')
 print(f'There were {num_of_na} cities')
+print(city_df.shape)
 
 #%%
 # Pull the api data and create a json file of it so I don't have to do
 # an API all every time
 try: 
-    print('File Found!')
     with open('assets/weather_data.json') as json_data:
         weather_data = json.load(json_data)
+    print('File Found!')
 except OSError:
     weather_data = []
     params = params = {'q': '', 'APPID': api_key, 'units': 'imperial'}
@@ -119,7 +121,8 @@ except OSError:
             print(f'Request for {city} failed with code {response.status_code}. Trying again')
             time.sleep(5)
         if response.json()['count'] > 0:
-            weather_data.append(response.json()['list'])
+            print(f'Adding weather data for {city}')
+            weather_data.append(response.json()['list'][0])
         else:
             print(f'{city} not found...' )
     # Write to file
@@ -129,7 +132,24 @@ except OSError:
 
 #%%
 # Load json into DataFrame for analysis
-
+weather_df = json_normalize(weather_data)
+#%%
+weather_df = weather_df.sort_values(by='coord.lat')
+weather_df.info()
+len(weather_df['coord.lat'].unique())
+#%%
+# Create axes for plot
+fig, ax_array = plt.subplots(nrows=2, ncols=2)
+ax1 = ax_array[0][0]
+ax2 = ax_array[0][1]
+ax3 = ax_array[1][0]
+ax4 = ax_array[1][1]
+#%%
+weather_df.plot(x='coord.lat', y='main.temp', kind='scatter', ax=ax1, title='Temperature')
+weather_df.plot(x='coord.lat', y='main.humidity', kind='scatter', ax=2, title='Humidity')
+weather_df.plot(x='coord.lat', y='main.humidity', kind='scatter', ax=3, )
+weather_df.plot(x='coord.lat', y='main.humidity', kind='scatter', ax=2)
+fig
 #%% [markdown]
 # # Results
 # Show graphs and stats here
@@ -138,19 +158,10 @@ except OSError:
 # Summarize findings here
 
 #%%
-def thing(row):
-    # print(row['A'])
-    s = pd.Series()
-    s['A'] = 4
-    if row['A'] % 2 == 0:
-        s['B'] = 7
-    return s
-# df['B'] = ''
-df = pd.DataFrame({'A': [1,2,3,4]})
-df = df.apply(thing, axis=1)
+
 
 #%%
-df
+
 
 
 #%%
