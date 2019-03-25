@@ -8,6 +8,7 @@
 #%%
 # Data manipulation
 import pandas as pd
+from pandas.io.json import json_normalize
 import numpy as np
 
 # Options for pandas
@@ -39,6 +40,7 @@ from citipy import citipy
 import requests
 from requests.auth import HTTPBasicAuth
 import json
+import time
 
 #%% [markdown]
 # # Analysis/Modeling
@@ -69,20 +71,24 @@ base_url = f'http://api.openweathermap.org/data/2.5/find?'
 
 #%%
 # Test the API
-test_city = "London,uk"
-params = {'q': test_city, 'APPID': api_key}
+city_name = "London,uk"
+params = {'q': city_name, 'APPID': api_key, 'units': 'imperial'}
 response = requests.get(base_url, params=params)
 print(json.dumps(response.json(), indent=4, sort_keys=True))
+type(response.status_code)
+
+# js_df = json_normalize(response.json(), [['list', 'coord']) # This works
+# js_df
+
+#%%
+
 
 
 #%%
-# Find cities closest to the urls (assuming they exist, otherwise resturn Nan)
+# Method to use with DataFrame to find the closest cities.
 def get_nearest_city(coor):
     city = citipy.nearest_city(coor['Latitude'], coor['Longitude'])
     return city.city_name + ',' + city.country_code
-    
-
-city_df.head()
 
 #%%
 if not 'city' in city_df.columns:
@@ -96,9 +102,33 @@ city_df.head()
 num_of_na = len(city_df[city_df['city'].isna()])
 print(f'There were {num_of_na} cities')
 
+#%%
+# Pull the api data and create a json file of it so I don't have to do
+# an API all every time
+try: 
+    print('File Found!')
+    with open('assets/weather_data.json') as json_data:
+        weather_data = json.load(json_data)
+except OSError:
+    weather_data = []
+    params = params = {'q': '', 'APPID': api_key, 'units': 'imperial'}
+    for idx, city in enumerate(city_df['city'].values):
+        params['q'] = city
+        response = requests.get(base_url, params=params)
+        while response.status_code != 200:
+            print(f'Request for {city} failed with code {response.status_code}. Trying again')
+            time.sleep(5)
+        if response.json()['count'] > 0:
+            weather_data.append(response.json()['list'])
+        else:
+            print(f'{city} not found...' )
+    # Write to file
+    with open('assets/weather_data.json', 'w') as json_file:
+        json.dump(weather_data, json_file)
+    
 
 #%%
-
+# Load json into DataFrame for analysis
 
 #%% [markdown]
 # # Results
@@ -108,7 +138,19 @@ print(f'There were {num_of_na} cities')
 # Summarize findings here
 
 #%%
+def thing(row):
+    # print(row['A'])
+    s = pd.Series()
+    s['A'] = 4
+    if row['A'] % 2 == 0:
+        s['B'] = 7
+    return s
+# df['B'] = ''
+df = pd.DataFrame({'A': [1,2,3,4]})
+df = df.apply(thing, axis=1)
 
+#%%
+df
 
 
 #%%
