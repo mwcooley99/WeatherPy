@@ -76,14 +76,6 @@ params = {'q': city_name, 'APPID': api_key, 'units': 'imperial'}
 response = requests.get(base_url, params=params)
 print(json.dumps(response.json(), indent=4, sort_keys=True))
 type(response.status_code)
-
-# js_df = json_normalize(response.json(), [['list', 'coord']) # This works
-# js_df
-
-#%%
-
-
-
 #%%
 # Method to use with DataFrame to find the closest cities.
 def get_nearest_city(coor):
@@ -96,12 +88,11 @@ if not 'city' in city_df.columns:
     city_df['city'] = city_df.apply(get_nearest_city, axis=1)
     pd.to_pickle(city_df, 'assets/city_df')
 city_df.head()
-
 #%%
 # Check for Nan cities and remove duplicates
 num_of_na = len(city_df[city_df['city'].isna()])
 city_df = city_df.drop_duplicates(subset='city')
-print(f'There were {num_of_na} cities')
+print(f'There were {num_of_na} cities not found')
 print(city_df.shape)
 
 #%%
@@ -136,20 +127,30 @@ weather_df = json_normalize(weather_data)
 #%%
 weather_df = weather_df.sort_values(by='coord.lat')
 weather_df.info()
-len(weather_df['coord.lat'].unique())
 #%%
-# Create axes for plot
-fig, ax_array = plt.subplots(nrows=2, ncols=2)
+# Plot the figures
+fig, ax_array = plt.subplots(nrows=2, ncols=2, figsize=(10,8))
 ax1 = ax_array[0][0]
+ax1.set_xlabel('Latitude')
+ax1.set_ylabel('Temperature (F)')
+
 ax2 = ax_array[0][1]
+ax2.set_xlabel('Latitude')
+ax2.set_ylabel('% Humidity')
+
 ax3 = ax_array[1][0]
+ax3.set_xlabel('Latidude')
+ax3.set_ylabel('% Cloudiness')
+
 ax4 = ax_array[1][1]
-#%%
+ax4.set_xlabel('Latitude')
+ax4.set_ylabel('Wind Speed (mph)')
+
 weather_df.plot(x='coord.lat', y='main.temp', kind='scatter', ax=ax1, title='Temperature')
-weather_df.plot(x='coord.lat', y='main.humidity', kind='scatter', ax=2, title='Humidity')
-weather_df.plot(x='coord.lat', y='main.humidity', kind='scatter', ax=3, )
-weather_df.plot(x='coord.lat', y='main.humidity', kind='scatter', ax=2)
-fig
+weather_df.plot(x='coord.lat', y='main.humidity', kind='scatter', ax=ax2, title='Humidity')
+weather_df.plot(x='coord.lat', y='clouds.all', kind='scatter', ax=ax3, title='Cloudiness', )
+weather_df.plot(x='coord.lat', y='wind.speed', kind='scatter', ax=ax4, title='Wind Speed')
+fig.tight_layout()
 #%% [markdown]
 # # Results
 # Show graphs and stats here
